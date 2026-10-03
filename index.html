@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Quantum Vault - Playable quantum search game demonstrating Grover's amplitude amplification and wavefunction collapse." />
+    <meta name="theme-color" content="#060913" />
+    <title>QUANTUM VAULT // Grover Search Game</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚛️</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Ambient Quantum Background Canvas -->
+    <canvas id="quantumBgCanvas" class="bg-canvas" aria-hidden="true"></canvas>
+
+    <!-- Main Game Shell -->
+    <main class="app-shell">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="badge-row">
+            <span class="lab-badge">QURIOSITY 2026 · OPTION 04</span>
+            <span class="sub-badge">4-QUBIT REGISTER · 16 STATES</span>
+          </div>
+          <h1>QUANTUM <span class="glow-word">VAULT</span></h1>
+          <p class="subtitle">AMPLITUDE AMPLIFICATION // GROVER SEARCH</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="hud-btn" id="muteButton" type="button" aria-label="Toggle Audio">🔊 AUDIO</button>
+          <button class="hud-btn highlight" id="tutorialButton" type="button" aria-expanded="false" aria-controls="referenceModal">
+            HOW TO PLAY <kbd>H</kbd>
+          </button>
+        </div>
+      </header>
+
+      <!-- Immediate Objective Banner (10-Second Player Understanding) -->
+      <section class="mission-hero" aria-label="Objective">
+        <div class="hero-top">
+          <span class="hero-icon">🎯</span>
+          <h2>FIND THE HIDDEN QUANTUM CORE</h2>
+        </div>
+        <p class="hero-flow">AMPLIFY ➔ WATCH ➔ MEASURE</p>
+        <p class="hero-desc">Amplify increases the hidden Core's probability. Measure to try to find it.</p>
+      </section>
+
+      <!-- Compact Game HUD -->
+      <section class="dashboard" aria-label="Game HUD">
+        <div class="metric-card">
+          <span class="metric-label">ROUND</span>
+          <strong class="metric-val" id="roundValue">1</strong>
+          <small class="metric-sub">Session</small>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">STATES</span>
+          <strong class="metric-val">16</strong>
+          <small class="metric-sub">|0000⟩ to |1111⟩</small>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">ITERATIONS</span>
+          <strong class="metric-val highlight-val" id="iterationValue">0</strong>
+          <small class="metric-sub">Grover cycles</small>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">SCORE</span>
+          <strong class="metric-val score-val" id="scoreValue">0</strong>
+          <small class="metric-sub">Best: <span id="bestScoreValue">0</span></small>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">WIN STREAK</span>
+          <strong class="metric-val streak-val" id="streakValue">0</strong>
+          <small class="metric-sub">Consecutive finds</small>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">EFFICIENCY</span>
+          <strong class="metric-val efficiency-val" id="efficiencyValue">100%</strong>
+          <small class="metric-sub">Rotation rating</small>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">STRONGEST STATE</span>
+          <strong class="metric-val" id="highestProbabilityValue">6.25%</strong>
+          <small class="metric-sub" id="highestStateValue">All states tied</small>
+        </div>
+      </section>
+
+      <!-- In-Game Contextual Coaching Banner -->
+      <section class="status-banner-box">
+        <div class="phase-indicator idle" id="phaseIndicator">STANDBY</div>
+        <p class="system-message" id="message" role="status">All states are equally likely.</p>
+      </section>
+
+      <!-- Main Stage: 4x4 Grid & Real-Time Trajectory Chart -->
+      <section class="experiment-stage">
+        <!-- 4x4 Quantum State Register Grid -->
+        <div class="grid-panel">
+          <div class="panel-header">
+            <div>
+              <span class="panel-tag">QUANTUM NODES</span>
+              <h2 class="panel-title">16 Superposed Possibilities</h2>
+            </div>
+            <div class="grid-legend">
+              <span class="legend-dot"></span> Glow = Probability
+            </div>
+          </div>
+          <div class="node-grid grid-16" id="nodeGrid" role="list" aria-label="16 Quantum register states">
+            <!-- 16 nodes populated dynamically by ui.js -->
+          </div>
+        </div>
+
+        <!-- Real-Time Grover Oscillation Trajectory -->
+        <aside class="analysis-panel" id="historyCard">
+          <div class="panel-header">
+            <div>
+              <span class="panel-tag">TRAJECTORY</span>
+              <h2 class="panel-title">Grover Oscillation</h2>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="historyCanvas" width="340" height="220" aria-label="Grover Probability Chart"></canvas>
+          </div>
+          <div class="chart-info">
+            <div class="info-row">
+              <span class="indicator-line theo"></span>
+              <span>Theoretical Grover curve</span>
+            </div>
+            <div class="info-row">
+              <span class="indicator-line actual"></span>
+              <span>Your current probability</span>
+            </div>
+          </div>
+          <div class="overshoot-callout">
+            <span class="callout-icon">💡</span>
+            <p><strong>Stopping Rule:</strong> Probability peaks around <strong>3 Amplifications (~96%)</strong>. If you amplify further, probability drops!</p>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Control Deck: Distinct Large Buttons -->
+      <section class="control-deck" aria-label="Game controls">
+        <div class="control-hint">
+          <span class="hint-label">PREPARE THEN DECIDE:</span>
+          <span class="hint-text">Use <strong>AMPLIFY</strong> to boost probability, then press <strong>MEASURE</strong> to choose!</span>
+        </div>
+        <div class="action-buttons">
+          <button class="game-btn amplify-btn" id="amplifyButton" type="button" title="One Grover iteration: prepare the quantum state">
+            <span class="btn-icon">⚡</span>
+            <div class="btn-content">
+              <span class="btn-title">AMPLIFY</span>
+              <span class="btn-subtitle">Increase probability</span>
+            </div>
+            <kbd>A</kbd>
+          </button>
+          <button class="game-btn measure-btn" id="measureButton" type="button" title="Collapse quantum state and sample one result">
+            <span class="btn-icon">◉</span>
+            <div class="btn-content">
+              <span class="btn-title">MEASURE</span>
+              <span class="btn-subtitle">Choose a state</span>
+            </div>
+            <kbd>M</kbd>
+          </button>
+          <button class="game-btn quiet-btn" id="resetButton" type="button" title="Start a fresh round">
+            <span class="btn-icon">↺</span>
+            <div class="btn-content">
+              <span class="btn-title">RESET</span>
+              <span class="btn-subtitle">New round</span>
+            </div>
+            <kbd>R</kbd>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Clean Victory Modal -->
+    <div class="modal-backdrop" id="winModal" hidden role="dialog" aria-modal="true" aria-labelledby="winModalTitle">
+      <div class="modal-window result-window win-theme">
+        <div class="result-header">
+          <span class="result-icon">★</span>
+          <h2 id="winModalTitle">CORE FOUND!</h2>
+          <p class="result-sub">Quantum Core located successfully!</p>
+        </div>
+        <div class="modal-body" id="winDetails">
+          <!-- Populated by ui.js -->
+        </div>
+        <div class="result-footer">
+          <button class="game-btn amplify-btn" id="playAgainBtn" type="button">PLAY AGAIN ↺</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clean Miss Modal -->
+    <div class="modal-backdrop" id="missModal" hidden role="dialog" aria-modal="true" aria-labelledby="missModalTitle">
+      <div class="modal-window result-window miss-theme">
+        <div class="result-header">
+          <span class="result-icon">✕</span>
+          <h2 id="missModalTitle">CORE MISSED</h2>
+          <p class="result-sub">Measurement selected an empty state.</p>
+        </div>
+        <div class="modal-body" id="missDetails">
+          <!-- Populated by ui.js -->
+        </div>
+        <div class="result-footer">
+          <button class="game-btn measure-btn" id="tryAgainBtn" type="button">TRY AGAIN ↺</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- How To Play & Quantum Theory Modal -->
+    <div class="modal-backdrop" id="referenceModal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="lab-badge">DOCUMENTATION</span>
+            <h2 id="modalTitle">HOW TO PLAY & QUANTUM THEORY</h2>
+          </div>
+          <button class="modal-close-btn" id="closeModalBtn" type="button" aria-label="Close dialog">×</button>
+        </div>
+
+        <nav class="modal-tabs" aria-label="Documentation sections">
+          <button class="modal-tab-btn active" data-tab="guideTab" type="button">QUICKSTART GUIDE</button>
+          <button class="modal-tab-btn" data-tab="physicsTab" type="button">THE QUANTUM PHYSICS</button>
+          <button class="modal-tab-btn" data-tab="controlsTab" type="button">CONTROLS</button>
+        </nav>
+
+        <div class="modal-body">
+          <!-- Tab 1: Quickstart Guide -->
+          <div class="modal-tab-pane active" id="guideTab">
+            <div class="guide-grid">
+              <div class="guide-card">
+                <h3>1. OBJECTIVE</h3>
+                <p>One hidden Quantum Core is concealed inside one of the 16 nodes (|0000⟩ to |1111⟩).</p>
+              </div>
+              <div class="guide-card">
+                <h3>2. AMPLIFY ⚡</h3>
+                <p>Each Amplify runs one Grover iteration (Oracle + Diffusion), boosting the hidden Core's probability.</p>
+              </div>
+              <div class="guide-card">
+                <h3>3. WATCH</h3>
+                <p>Observe the glowing nodes and trajectory graph as probability concentrates.</p>
+              </div>
+              <div class="guide-card">
+                <h3>4. DON'T OVERSHOOT</h3>
+                <p>More is not always better! At iteration 3 probability peaks (~96%). Iteration 4 drops back down.</p>
+              </div>
+              <div class="guide-card">
+                <h3>5. MEASURE ◉</h3>
+                <p>When you feel the probability is high enough, press Measure to sample a state.</p>
+              </div>
+              <div class="guide-card">
+                <h3>6. WIN</h3>
+                <p>If the measured node holds the Core, you win! Build a winning streak and aim for maximum score.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: The Quantum Physics -->
+          <div class="modal-tab-pane" id="physicsTab">
+            <div class="math-explainer">
+              <h3>Grover's Amplitude Amplification</h3>
+              <p>Provides a quadratic speedup for search ($O(\sqrt{N})$ vs classical $O(N)$).</p>
+              
+              <div class="formula-box">
+                <h4>1. Superposition</h4>
+                <p>All 16 states start in equal superposition: <code>a = 1/√16 = 0.25</code>, <code>P = 6.25%</code> each.</p>
+              </div>
+
+              <div class="formula-box">
+                <h4>2. Phase Oracle (U_w)</h4>
+                <code>U_w |x⟩ = -|x⟩ (target), else +|x⟩</code>
+                <p>Inverts the marked target's sign, creating phase contrast.</p>
+              </div>
+
+              <div class="formula-box">
+                <h4>3. Diffusion Operator</h4>
+                <code>a'_i = 2μ - a_i  (Reflection about mean amplitude)</code>
+                <p>Because the target phase was negated, the mean drops. Reflecting about this low mean amplifies the target while suppressing others.</p>
+              </div>
+
+              <div class="formula-box">
+                <h4>4. Geometric Rotation & Overshoot</h4>
+                <code>P_target(k) = sin²((2k + 1) θ) where θ = arcsin(1/4) ≈ 14.48°</code>
+                <ul>
+                  <li><strong>k = 0:</strong> 6.25% (Superposition)</li>
+                  <li><strong>k = 1:</strong> 47.27% (First amplification)</li>
+                  <li><strong>k = 2:</strong> 90.84% (High concentration)</li>
+                  <li><strong>k = 3:</strong> 96.13% <em>(Optimal Peak!)</em></li>
+                  <li><strong>k = 4:</strong> 58.17% <em>(Overshoot Drop!)</em></li>
+                  <li><strong>k = 5:</strong> 12.55% <em>(Collapse)</em></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Controls -->
+          <div class="modal-tab-pane" id="controlsTab">
+            <table class="shortcuts-table">
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Action</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><kbd>A</kbd></td>
+                  <td><strong>AMPLIFY</strong></td>
+                  <td>Runs 1 Grover iteration (Oracle + Diffusion).</td>
+                </tr>
+                <tr>
+                  <td><kbd>M</kbd></td>
+                  <td><strong>MEASURE</strong></td>
+                  <td>Performs Born-rule weighted quantum measurement.</td>
+                </tr>
+                <tr>
+                  <td><kbd>R</kbd></td>
+                  <td><strong>RESET</strong></td>
+                  <td>Starts a fresh round with a newly randomized hidden Core.</td>
+                </tr>
+                <tr>
+                  <td><kbd>H</kbd></td>
+                  <td><strong>HOW TO PLAY</strong></td>
+                  <td>Opens this manual and theory documentation.</td>
+                </tr>
+                <tr>
+                  <td><kbd>Esc</kbd></td>
+                  <td><strong>CLOSE</strong></td>
+                  <td>Closes modal dialogs.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Application Script Entrypoint -->
+    <script type="module" src="js/game.js"></script>
+  </body>
+</html>
