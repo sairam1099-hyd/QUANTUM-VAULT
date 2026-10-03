@@ -439,7 +439,7 @@ The project focuses on making a real quantum-computing concept understandable th
 
 ## 👥 Team
 
-**Team:** Tech Titans
+**Team:** TEAM APEX
 
 **Project:** Quantum Vault
 
@@ -450,3 +450,8 @@ The project focuses on making a real quantum-computing concept understandable th
 ## 📜 License
 
 This project is created for educational and hackathon purposes.
+
+
+
+BY 
+T.SAI RAM AND TEAM
